@@ -157,7 +157,7 @@ exports.getMe = catchAsync(async (req, res, next) => {
 exports.adminLogin = catchAsync(async (req, res, next) => {
     try {
         const { email, password } = req.body;
-        console.log('Login attempt for email:', email);
+        console.log('Login attempt with:', { email, password });
 
         if (!email || !password) {
             return res.status(400).json({
@@ -167,15 +167,22 @@ exports.adminLogin = catchAsync(async (req, res, next) => {
         }
 
         const admin = await Admin.findOne({ email }).select('+password');
-        console.log('Admin found:', admin ? 'Yes' : 'No');
+        console.log('Admin details:', {
+            found: !!admin,
+            storedPassword: admin ? admin.password : null
+        });
 
-        if (admin) {
-            console.log('Stored hashed password:', admin.password);
-            const isPasswordValid = await admin.comparePassword(password);
-            console.log('Password valid:', isPasswordValid);
+        if (!admin) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
         }
 
-        if (!admin || !(await admin.comparePassword(password))) {
+        const isPasswordValid = await admin.comparePassword(password);
+        console.log('Password comparison result:', isPasswordValid);
+
+        if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
                 message: 'Invalid email or password'
@@ -197,7 +204,7 @@ exports.adminLogin = catchAsync(async (req, res, next) => {
             user: admin
         });
     } catch (error) {
-        console.error('Login error:', error); // Debug log
+        console.error('Login error:', error);
         next(error);
     }
 });

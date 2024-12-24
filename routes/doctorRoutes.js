@@ -16,9 +16,8 @@ router.route('/:id').get(getDoctorById)
 
 // Admin routes protected by auth middleware and restricted to admin
 router.use(protect);
-router.use(restrictTo('admin'));
 
-router.route('/').get(getAllDoctors)
+router.get('/', getAllDoctors)
 router.post('/', createDoctor);
 router.put('/:id', updateDoctor);
 router.patch('/:id/status', updateDoctorStatus);

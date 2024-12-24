@@ -2,6 +2,7 @@ const Doctor = require('../models/doctors');
 const catchAsync = require('../utils/catchAsync');
 
 exports.createDoctor = catchAsync(async (req, res) => {
+    console.log("req.body", req.body);
     const doctor = await Doctor.create(req.body);
     res.status(201).json({
         success: true,
