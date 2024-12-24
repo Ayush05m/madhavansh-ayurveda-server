@@ -1,3 +1,4 @@
+// madhavansh-ayurveda-server/app.js
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -8,31 +9,38 @@ const compression = require('compression');
 const mongoSanitize = require('express-mongo-sanitize');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
+const http = require('http'); // Import http module
+const Admin = require('./models/Admin'); // Adjust the path as necessary
 
 const app = express();
+const server = http.createServer(app); // Create an HTTP server
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
-});
-
-// Middleware
-app.use(helmet()); // Security headers
-app.use(limiter); // Rate limiting
-app.use(compression()); // Compress responses
-app.use(mongoSanitize()); // Prevent NoSQL injection
-app.use(express.json({ limit: '10kb' })); // Limit body size
+// Body parsing middleware
+app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // CORS configuration
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'http://localhost:5174'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['Set-Cookie'],
+    optionsSuccessStatus: 200
 }));
+
+// Security middleware
+app.use(helmet());
+app.use(mongoSanitize());
+app.use(compression());
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100
+});
+app.use('/api/', limiter);
 
 // Logging
 app.use(morgan('combined', {
@@ -42,11 +50,35 @@ app.use(morgan('combined', {
 // Routes
 const authRoutes = require('./routes/authRoutes');
 const consultationRoutes = require('./routes/consultationRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const doctorRoutes = require('./routes/doctorRoutes');
 
+// Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/consultations', consultationRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/doctors', doctorRoutes);
 
 // Error handling
 app.use(errorHandler);
 
-module.exports = app; 
+
+const initializeAdmin = async () => {
+    const adminExists = await Admin.findOne();
+    if (!adminExists) {
+        await Admin.createAdmin('Admin', 'admin@example.com', 'securePassword123', '1234567890');
+    } else {
+        console.log('Admin already exists.');
+    }
+};
+
+// Call the function to ensure admin is created
+initializeAdmin().catch(err => console.error('Error initializing admin:', err));
+
+
+// Start the server
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+module.exports = { app, server }; // Export both app and server

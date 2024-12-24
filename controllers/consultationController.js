@@ -1,67 +1,84 @@
 const Consultation = require('../models/Consultation');
+const User = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
+const TempUser = require('../models/TempUser');
 
 exports.createConsultation = catchAsync(async (req, res) => {
     const consultationFees = {
-        'General Consultation': 1000,
-        'Follow-up': 800,
-        'Specific Treatment': 1500,
-        'Emergency': 2000
+        'General Consultation': 500,
+        'Follow-up': 500,
+        'Specific Treatment': 500,
+        'Emergency': 500
     };
+
+    // console.log(req.body)
 
     const consultation = await Consultation.create({
         ...req.body,
-        patient: req.user._id,
         amount: consultationFees[req.body.consultationType] || 1000
     });
+    let updatedUser;
+    let user = await User.findOne({ contact: consultation.contact });
+    if (!user) {
+        user = await TempUser.findOne({ contact: consultation.contact });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        user.consultations.push(`${consultation._id}`);
+        updatedUser = await TempUser.findByIdAndUpdate(user._id, { consultations: user.consultations }, { new: true });
+        if (updatedUser.consultations.length > 1) {
+            const { name, contact, consultations, isVerified } = updatedUser;
+            try {
+                const newUser = await User.create({ name, contact, consultations, isVerified });
+                console.log(newUser);
+            }
+            catch (error) {
+                console.log(error);
+                res.json({
+                    success: true,
+                    data: consultation,
+                    message: "COnsultation Booked, Failed to create permanent user"
+                })
 
-    const populatedConsultation = await Consultation.findById(consultation._id)
-        .populate('patient', 'name email')
-        .populate('doctor', 'name email');
+            }
+        }
+    } else {
+        user.consultations.push(`${consultation._id}`);
+        updatedUser = await User.findByIdAndUpdate(user._id, { consultations: user.consultations }, { new: true });
+    }
+
+    if (!updatedUser) {
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to update user consultations'
+        });
+    }
+
 
     res.status(201).json({
         success: true,
-        data: populatedConsultation
+        data: consultation
     });
 });
 
 exports.getConsultations = catchAsync(async (req, res) => {
-    const userId = req.params.userId;
-    console.log('User ID:', userId);
-    console.log('User Role:', req.user.role);
-
-    let query;
-    if (req.user.role === 'doctor') {
-        query = { doctorId: userId };
-    } else {
-        query = { patient: userId };
-    }
-
-    console.log('Query:', query);
+    const contact = req.params.id;
+    // console.log('User Role:', req);
 
     try {
-        const consultations = await Consultation.find(query)
-            .populate({
-                path: 'patient',
-                select: 'name email'
-            })
+        const consultations = await Consultation.find({ contact })
             .sort('-createdAt');
 
         console.log('Found consultations:', consultations);
 
-        const transformedConsultations = consultations.map(consultation => {
-            const doc = consultation.toObject();
-            return {
-                ...doc,
-                doctorName: `Doctor ${doc.doctorId}`
-            };
-        });
-
         res.json({
             success: true,
             count: consultations.length,
-            data: transformedConsultations
+            data: consultations
         });
     } catch (error) {
         console.error('Error fetching consultations:', error);
@@ -74,21 +91,15 @@ exports.getConsultations = catchAsync(async (req, res) => {
 });
 
 exports.getConsultation = catchAsync(async (req, res) => {
+    // console.log(req.params.id);
+
     const consultation = await Consultation.findById(req.params.id)
-        .populate('patient', 'name email')
-        .populate('doctor', 'name email');
+
 
     if (!consultation) {
         return res.status(404).json({
             success: false,
             message: 'Consultation not found'
-        });
-    }
-
-    if (req.user.role === 'patient' && consultation.patient._id.toString() !== req.user._id.toString()) {
-        return res.status(403).json({
-            success: false,
-            message: 'You do not have permission to view this consultation'
         });
     }
 
@@ -106,7 +117,7 @@ exports.updateConsultationStatus = catchAsync(async (req, res) => {
         { status },
         { new: true, runValidators: true }
     ).populate('patient', 'name email')
-     .populate('doctor', 'name email');
+        .populate('doctor', 'name email');
 
     if (!consultation) {
         return res.status(404).json({

@@ -13,29 +13,29 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: [true, 'Please provide an email'],
-        unique: true,
-        lowercase: true
+        lowercase: true,
+        sparse: true
     },
     password: {
         type: String,
-        required: [true, 'Please provide a password'],
         minlength: 6,
         select: false
     },
     age: {
-        type: Number,
-        required: [true, 'Please provide age']
+        type: Number
     },
-    role: {
+    contact: {
         type: String,
-        enum: ['patient', 'admin', 'doctor'],
-        default: 'patient'
-    },
-    phone: {
-        type: String,
+        unique: true,
         required: [true, 'Please provide phone number']
-    }
+    },
+    consultations: {
+        type: [String],
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
 }, {
     timestamps: true
 });
