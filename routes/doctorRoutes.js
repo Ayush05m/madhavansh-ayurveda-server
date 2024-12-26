@@ -20,7 +20,6 @@ router.use(protect);
 router.get('/', getAllDoctors)
 router.post('/', createDoctor);
 router.put('/:id', updateDoctor);
-router.patch('/:id/status', updateDoctorStatus);
 router.patch('/:id/availability', updateAvailability);
 
 module.exports = router; 

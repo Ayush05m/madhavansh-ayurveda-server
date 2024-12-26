@@ -64,6 +64,7 @@ exports.createConsultation = catchAsync(async (req, res) => {
             try {
                 const newUser = await User.create({ name, contact, consultations, isVerified });
                 console.log(newUser);
+                await TempUser.deleteOne({ contact: consultation.contact });
             }
             catch (error) {
                 console.log(error);
@@ -72,13 +73,12 @@ exports.createConsultation = catchAsync(async (req, res) => {
                     data: consultation,
                     message: "COnsultation Booked, Failed to create permanent user"
                 })
-
             }
         }
     } else {
         user.consultations.push(`${consultation._id}`);
         updatedUser = await User.findByIdAndUpdate(user._id, { consultations: user.consultations }, { new: true });
-    }
+    }   
 
     if (!updatedUser) {
         return res.status(500).json({
