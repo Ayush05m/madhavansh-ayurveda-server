@@ -9,6 +9,7 @@ const {
     getAllConsultations,
     getConsultationStats
 } = require('../controllers/adminController');
+const { updateConsultation, updateConsultationStatus } = require('../controllers/consultationController');
 
 const adminAuthRoutes = require('./adminAuthRoutes');
 
@@ -18,6 +19,7 @@ router.use('/auth', adminAuthRoutes);
 
 // Protect all admin routes below this middleware
 router.use(protect);
+router.use(restrictTo('admin'));
 
 // Dashboard stats
 router.get('/dashboard-stats', getDashboardStats);
@@ -28,5 +30,7 @@ router.patch('/users/:userId/role', updateUserRole);
 // Consultations management
 router.get('/consultations', getAllConsultations);
 router.get('/consultation-stats', getConsultationStats);
+router.put("/consultations/:id", updateConsultation);
+router.patch("/consultations/:id/status", updateConsultationStatus);
 
 module.exports = router;

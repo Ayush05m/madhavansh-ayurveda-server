@@ -8,7 +8,6 @@ const doctorSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: [true, 'Please provide an email'],
         unique: true,
         lowercase: true
     },
@@ -23,7 +22,6 @@ const doctorSchema = new mongoose.Schema({
     },
     qualification: {
         type: String,
-        required: [true, 'Please provide qualification']
     },
     experience: {
         type: Number,
@@ -35,18 +33,18 @@ const doctorSchema = new mongoose.Schema({
         unique: true
     },
     availability: [{
-        day: {
+        days: {
             type: [String],
             enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         },
-        slots: [{
+        slots: [[{
             startTime: String,
             endTime: String,
             isBooked: {
                 type: Boolean,
                 default: false
             }
-        }]
+        }]]
     }],
     status: {
         type: String,

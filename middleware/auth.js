@@ -26,7 +26,7 @@ const protect = async (req, res, next) => {
 
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            console.log('Decoded: ', decoded);
+            // console.log('Decoded: ', decoded);
             const user = await User.findById(decoded.id).select('-password');
             const tempUser = await TempUser.findById(decoded.id).select('-password');
             const admin = await Admin.findById(decoded.id).select('-password');
@@ -59,13 +59,14 @@ const protect = async (req, res, next) => {
 const restrictTo = (...roles) => {
 
     return (req, res, next) => {
-        if (!req.user || !roles.includes(req.user.role)) {
-            return res.status(403).json({
+        if (req.cookies['admin-token']) {
+            next();
+        } else {
+            return res.status(401).json({
                 success: false,
-                message: 'You do not have permission to perform this action'
+                message: 'You are not authorized to access this is restricted route'
             });
         }
-        next();
     };
 };
 

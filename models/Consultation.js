@@ -55,8 +55,8 @@ const consultationSchema = new mongoose.Schema({
         type: String
     },
     prescription: {
-        instructions: String,
-        file: [String]
+        files: [String],
+        instructions: String
     },
     paymentStatus: {
         type: String,

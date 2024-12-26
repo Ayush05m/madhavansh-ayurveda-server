@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema({
     consultations: {
         type: [String],
     },
+    NoOfConsultations: {
+        type: Number,
+        default: 0
+    },
     isVerified: {
         type: Boolean,
         default: false
