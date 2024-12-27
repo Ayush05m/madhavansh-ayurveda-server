@@ -1,14 +1,35 @@
 const Doctor = require('../models/doctors');
 const catchAsync = require('../utils/catchAsync');
 
-exports.createDoctor = catchAsync(async (req, res) => {
-    console.log("req.body", req.body);
-    const doctor = await Doctor.create(req.body);
-    res.status(201).json({
-        success: true,
-        data: doctor
-    });
-});
+exports.createDoctor = async (req, res) => {
+    try {
+        const doctorData = {
+            ...req.body,
+            availability: {
+                days: req.body.availability.days,
+                slots: req.body.availability.slots.map(daySlots => 
+                    daySlots.map(slot => ({
+                        startTime: slot.startTime,
+                        endTime: slot.endTime,
+                        isBooked: false
+                    }))
+                )
+            }
+        };
+
+        const doctor = await Doctor.create(doctorData);
+        res.status(201).json({
+            status: 'success',
+            data: doctor
+        });
+    } catch (error) {
+        console.error('Doctor creation error:', error);
+        res.status(500).json({
+            status: 'error',
+            message: error.message
+        });
+    }
+};
 
 exports.getAllDoctors = catchAsync(async (req, res) => {
     const doctors = await Doctor.find()

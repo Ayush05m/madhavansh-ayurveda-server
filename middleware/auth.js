@@ -57,7 +57,7 @@ const protect = async (req, res, next) => {
 
 const restrictTo = (...roles) => {
   return (req, res, next) => {
-    if (req.cookies["admin-token"]) {
+    if (req.cookies["adminToken"]) {
       next();
     } else {
       return res.status(401).json({

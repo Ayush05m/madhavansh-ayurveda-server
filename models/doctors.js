@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const doctorSchema = new mongoose.Schema({
     name: {
@@ -16,7 +15,7 @@ const doctorSchema = new mongoose.Schema({
         required: [true, 'Please provide phone number']
     },
     specialization: {
-        type: String,
+        type: [String],
         required: [true, 'Please provide specialization'],
         enum: ['Ayurveda', 'Panchakarma', 'Yoga', 'General']
     },
@@ -32,7 +31,7 @@ const doctorSchema = new mongoose.Schema({
         required: [true, 'Please provide registration number'],
         unique: true
     },
-    availability: [{
+    availability: {
         days: {
             type: [String],
             enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -45,33 +44,17 @@ const doctorSchema = new mongoose.Schema({
                 default: false
             }
         }]]
-    }],
+    },
     status: {
         type: String,
         enum: ['active', 'inactive', 'on-leave'],
         default: 'active'
     },
-    // consultationFee: {
-    //     type: Number,
-    //     required: [true, 'Please provide consultation fee']
-    // },
     profileImage: {
         type: String
     }
 }, {
     timestamps: true
 });
-
-// Hash password before saving
-doctorSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
-    this.password = await bcrypt.hash(this.password, 12);
-    next();
-});
-
-// Compare password method
-doctorSchema.methods.comparePassword = async function(candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
-};
 
 module.exports = mongoose.model('Doctor', doctorSchema); 
