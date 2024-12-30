@@ -46,6 +46,8 @@ exports.getAllUsers = catchAsync(async (req, res) => {
   const tempUsers = await TempUser.find()
     .select("-password")
     .sort("-createdAt");
+    console.log(users, tempUsers);
+    
   res.json({
     success: true,
     count: users.length + tempUsers.length,

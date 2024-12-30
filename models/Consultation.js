@@ -66,6 +66,11 @@ const consultationSchema = new mongoose.Schema({
     additionalInfo: {
         img: [String],
         file: [String],
+    },
+    mode: {
+        type: String,
+        enum: ['online', 'offline'],
+        default: 'offline'
     }
 }, {
     timestamps: true
