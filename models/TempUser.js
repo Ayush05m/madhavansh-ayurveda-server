@@ -11,7 +11,8 @@ const TempUserSchema = new mongoose.Schema({
         required: [true, 'Please provide phone number']
     },
     consultations: {
-        type: [String]
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "Consultation"
     },
     isVerified: {
         type: String,

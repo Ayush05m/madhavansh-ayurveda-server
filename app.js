@@ -9,10 +9,11 @@ const compression = require("compression");
 const mongoSanitize = require("express-mongo-sanitize");
 const errorHandler = require("./middleware/errorHandler");
 const logger = require("./utils/logger");
-const http = require("http"); // Import http module
-const Admin = require("./models/Admin"); // Adjust the path as necessary
-const bcrypt = require("bcryptjs");
+const http = require("http");
+const Admin = require("./models/Admin");
+const QRCode = require('qrcode');
 
+// Initialize express app
 const app = express();
 const server = http.createServer(app); // Create an HTTP server
 
@@ -67,6 +68,8 @@ app.use("/api/doctors", doctorRoutes);
 // Error handling
 app.use(errorHandler);
 
+
+// Default Admin creation
 const initializeAdmin = async () => {
     try {
         const adminExists = await Admin.find();
@@ -85,17 +88,25 @@ const initializeAdmin = async () => {
         console.error("Error initializing admin:", error);
     }
 };
-
-// Call the function to ensure admin is created
 initializeAdmin().catch((err) =>
   console.error("Error initializing admin:", err)
 );
 
-// Start the server
-const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.get('/api/generate-qr', async (req, res) => {
+  const { note } = req.query;
+  const vpa = process.env.PAYEE_VPA;
+  const name = process.env.PAYEE_NAME;
+  const amount = 1;
+  const upiLink = `upi://pay?pa=${vpa}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
+
+  try {
+      const qrCodeData = await QRCode.toDataURL(upiLink); // Generates a Base64 image
+      res.status(200).json({ qrCodeData, amount });
+  } catch (error) {
+      res.status(500).json({ error: 'Failed to generate QR code' });
+  }
 });
-module.exports = { app, server }; // Export both app and server
+
+module.exports = { app, server }; 
 
 app.use('/uploads', express.static('uploads'));

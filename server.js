@@ -7,11 +7,6 @@
    // Connect to MongoDB
    connectDB();
 
-   // Create an admin user directly
-//    const createInitialAdmin = async () => {
-//        await Admin.createAdmin('Ayush Mishra', 'ayush05m@gmail.com', '111111', '1234567890');
-//    };
-
    // Start server
    const PORT = process.env.PORT || 5000;
 
@@ -19,7 +14,6 @@
    if (!server.listening) {
        server.listen(PORT, async () => {
            console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-           await createInitialAdmin(); // Call the function to create an admin
        });
    } else {
        console.log(`Server is already running on port ${PORT}`);

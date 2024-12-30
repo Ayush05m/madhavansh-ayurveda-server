@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const consultationSchema = new mongoose.Schema({
     patient: {
         type: mongoose.Schema.Types.ObjectId,
-        // ref: 'User' || 'TempUser',
+        ref: 'User' || 'TempUser',
     },
     name: {
         type: String,
