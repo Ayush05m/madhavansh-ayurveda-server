@@ -17,6 +17,10 @@ const consultationSchema = new mongoose.Schema({
         enum: ['General Consultation', 'Follow-up', 'Specific Treatment', 'Emergency'],
         required: true,
     },
+    department: {
+        type: String,
+        required: true,
+    },
     doctor: {
         doctorName: {
             type: String,

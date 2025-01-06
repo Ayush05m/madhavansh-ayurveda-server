@@ -14,8 +14,16 @@ const TempUserSchema = new mongoose.Schema({
         type: [mongoose.Schema.Types.ObjectId],
         ref: "Consultation"
     },
+    email: {
+        type: String,
+        required: [true, 'Please provide email'],
+    },
     isVerified: {
         type: String,
+        required: true
+    },
+    otp: {
+        type: Number,
         required: true
     }
 }, {

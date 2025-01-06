@@ -8,8 +8,8 @@ const { validateOtp, sendOtp } = require('../controllers/otpController');
 router.post('/register', authValidation.register, validate, register);
 router.post('/login', authValidation.login, validate, login);
 router.post('/logout', protect, logout);
-router.post('/verifyOtp', validateOtp);
 router.post('/sendOtp', sendOtp);
+router.post('/verifyOtp', validateOtp);
 router.get('/me', protect, getMe);
 router.get('/check', protect, getMe);
 

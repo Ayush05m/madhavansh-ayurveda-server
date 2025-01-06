@@ -46,6 +46,7 @@ exports.createConsultation = catchAsync(async (req, res) => {
     ...req.body,
     amount: consultationFees[req.body.consultationType] || 1000,
   });
+
   let updatedUser;
   let user = await User.findOne({ contact: consultation.contact });
   if (!user) {

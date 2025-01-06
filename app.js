@@ -58,55 +58,48 @@ const authRoutes = require("./routes/authRoutes");
 const consultationRoutes = require("./routes/consultationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
+const QrGerator = require("./routes/qrGenerateRoutes")
 
 // Mount routes
 app.use("/api/auth", authRoutes);
 app.use("/api/consultations", consultationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/doctors", doctorRoutes);
+app.use('/api/generate-qr', QrGerator);
 
 // Error handling
 app.use(errorHandler);
 
+app.use((req, res, next) => {
+    console.log(`Request Method: ${req.method}, Request URL: ${req.url}`);
+    next();
+});
 
 // Default Admin creation
 const initializeAdmin = async () => {
-    try {
-        const adminExists = await Admin.find();
-        if (adminExists.length === 0) {
-            const admin = await Admin.create({
-                name: "Admin",
-                email: "admin@example.com",
-                password: "111111",
-                phone: "1234567890"
-            });
-            console.log('Admin created successfully');
-        } else {
-            console.log("Admin already exists.");
-        }
-    } catch (error) {
-        console.error("Error initializing admin:", error);
+  try {
+    const adminExists = await Admin.find();
+    if (adminExists.length === 0) {
+      const admin = await Admin.create({
+        name: "Admin",
+        email: "admin@example.com",
+        password: "111111",
+        phone: "1234567890"
+      });
+      console.log('Admin created successfully');
+    } else {
+      console.log("Admin already exists.");
     }
+  } catch (error) {
+    console.error("Error initializing admin:", error);
+  }
 };
+
 initializeAdmin().catch((err) =>
   console.error("Error initializing admin:", err)
 );
 
-app.get('/api/generate-qr', async (req, res) => {
-  const { note } = req.query;
-  const vpa = process.env.PAYEE_VPA;
-  const name = process.env.PAYEE_NAME;
-  const amount = 1;
-  const upiLink = `upi://pay?pa=${vpa}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
 
-  try {
-      const qrCodeData = await QRCode.toDataURL(upiLink); // Generates a Base64 image
-      res.status(200).json({ qrCodeData, amount });
-  } catch (error) {
-      res.status(500).json({ error: 'Failed to generate QR code' });
-  }
-});
-
-module.exports = { app, server }; 
+module.exports = { app, server };
 
 app.use('/uploads', express.static('uploads'));

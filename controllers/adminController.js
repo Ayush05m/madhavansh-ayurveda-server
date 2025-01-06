@@ -3,6 +3,7 @@ const Doctor = require("../models/doctors");
 const Consultation = require("../models/Consultation");
 const catchAsync = require("../utils/catchAsync");
 const TempUser = require("../models/TempUser");
+const doctors = require("../models/doctors");
 
 exports.getDashboardStats = catchAsync(async (req, res) => {
   // console.log('getDashboardStats controller hit')
@@ -42,28 +43,23 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
 });
 
 exports.getAllUsers = catchAsync(async (req, res) => {
-  const users = await User.find().select("-password").sort("-createdAt");
-  const tempUsers = await TempUser.find()
-    .select("-password")
-    .sort("-createdAt");
-    console.log(users, tempUsers);
-    
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const [users, tempUsers, totalUsers, totalTempUsers] = await Promise.all([
+    User.find().select("-password").sort("-createdAt").skip(skip).limit(limit),
+    TempUser.find().select("-password").sort("-createdAt").skip(skip).limit(limit),
+    User.countDocuments(),
+    TempUser.countDocuments()
+  ]);
+
   res.json({
     success: true,
-    count: users.length + tempUsers.length,
+    count: totalUsers + totalTempUsers,
+    currentPage: page,
+    totalPages: Math.ceil((totalUsers + totalTempUsers) / limit),
     data: [...users, ...tempUsers],
-  });
-});
-
-exports.getAllDoctors = catchAsync(async (req, res) => {
-  const doctors = await User.find({ role: "doctor" })
-    .select("-password")
-    .sort("-createdAt");
-
-  res.json({
-    success: true,
-    count: doctors.length,
-    data: doctors,
   });
 });
 
@@ -90,9 +86,12 @@ exports.updateUserRole = catchAsync(async (req, res) => {
   });
 });
 
+// Consultations
 exports.getAllConsultations = catchAsync(async (req, res) => {
   const { status, startDate, endDate } = req.query;
-  // console.log("get All Consultations: ", req.query);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
 
   let query = {};
 
@@ -107,13 +106,16 @@ exports.getAllConsultations = catchAsync(async (req, res) => {
     };
   }
 
-  const consultations = await Consultation.find(query).sort("-createdAt");
-
-  // console.log("consultations", consultations);
+  const [consultations, total] = await Promise.all([
+    Consultation.find(query).sort("-createdAt").skip(skip).limit(limit),
+    Consultation.countDocuments(query)
+  ]);
 
   res.json({
     success: true,
-    count: consultations.length,
+    count: total,
+    currentPage: page,
+    totalPages: Math.ceil(total / limit),
     data: consultations,
   });
 });
@@ -152,5 +154,47 @@ exports.getConsultationStats = catchAsync(async (req, res) => {
       statusStats: stats,
       monthlyStats,
     },
+  });
+});
+
+exports.deleteConsultationByID = catchAsync(async (req, res) => {
+  const { id, contact } = req.params;
+  const consultation = await Consultation.deleteOne({ _id: id, contact: contact });
+  let user = await User.findOne({ contact });
+
+  if (!user) {
+    user = await TempUser.findOne({ contact });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    user.consultations = user.consultations.filter(consultationId => consultationId.toString() !== id);
+    await user.save();
+  }
+
+  user.consultations = user.consultations.filter(consultationId => consultationId.toString() !== id);
+  user.NoOfConsultations -= 1;
+  await user.save();
+
+  res.json({
+    success: true,
+    message: "Consultation deleted and user updated successfully",
+  });
+});
+
+
+// Doctors
+
+exports.deleteDoctorById = catchAsync(async (req, res) => {
+
+  const { id } = req.params
+  const doctor = Doctor.deleteOne({ _id: id });
+
+  res.json({
+    success: true,
+    count: doctors.length,
+    data: doctors,
   });
 });
