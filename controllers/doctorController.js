@@ -7,7 +7,7 @@ exports.createDoctor = async (req, res) => {
             ...req.body,
             availability: {
                 days: req.body.availability.days,
-                slots: req.body.availability.slots.map(daySlots => 
+                slots: req.body.availability.slots.map(daySlots =>
                     daySlots.map(slot => ({
                         startTime: slot.startTime,
                         endTime: slot.endTime,
