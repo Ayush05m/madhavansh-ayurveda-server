@@ -83,7 +83,7 @@ const initializeAdmin = async () => {
       const admin = await Admin.create({
         name: "Admin",
         email: "admin@example.com",
-        password: "111111",
+        password: "admin123",
         phone: "1234567890"
       });
       console.log('Admin created successfully');

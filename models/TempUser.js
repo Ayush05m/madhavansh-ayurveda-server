@@ -7,7 +7,7 @@ const TempUserSchema = new mongoose.Schema({
     },
     contact: {
         type: String,
-        unique: true,
+        // unique: true,
         required: [true, 'Please provide phone number']
     },
     consultations: {
