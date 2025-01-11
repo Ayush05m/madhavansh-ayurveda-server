@@ -19,6 +19,9 @@ const doctorSchema = new mongoose.Schema({
         required: [true, 'Please provide specialization'],
         enum: ['Ayurveda', 'Panchakarma', 'Yoga', 'General']
     },
+    department: {
+        type: [String],
+    },
     qualification: {
         type: String,
     },

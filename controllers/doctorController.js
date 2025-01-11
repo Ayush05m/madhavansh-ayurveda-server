@@ -1,8 +1,10 @@
 const Doctor = require('../models/doctors');
 const catchAsync = require('../utils/catchAsync');
 
-exports.createDoctor = async (req, res) => {
+exports.createDoctor = catchAsync(async (req, res) => {
     try {
+        console.log(req.body);
+
         const doctorData = {
             ...req.body,
             availability: {
@@ -29,16 +31,25 @@ exports.createDoctor = async (req, res) => {
             message: error.message
         });
     }
-};
+});
 
 exports.getAllDoctors = catchAsync(async (req, res) => {
-    const doctors = await Doctor.find()
+    // const doctors = await Doctor.find()
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const [doctors, count] = await Promise.all([
+        Doctor.find().sort("-createdAt").skip(skip).limit(limit),
+        Doctor.countDocuments(),
+    ]);
     // .sort('name');
     // console.log("doctors     ", doctors);
 
     res.json({
         success: true,
-        count: doctors.length,
+        currentPage: page,
+        totalPages: Math.ceil(count / limit),
+        count: count,
         data: doctors
     });
 });
