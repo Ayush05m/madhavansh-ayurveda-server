@@ -12,6 +12,7 @@ const logger = require("./utils/logger");
 const http = require("http");
 const Admin = require("./models/Admin");
 const QRCode = require('qrcode');
+const feedbackRoutes = require("./routes/feedbackRoutes");
 
 // Initialize express app
 const app = express();
@@ -66,6 +67,7 @@ app.use("/api/consultations", consultationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use('/api/generate-qr', QrGerator);
+app.use("/api/feedback", feedbackRoutes);
 
 // Error handling
 app.use(errorHandler);

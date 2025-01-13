@@ -132,17 +132,40 @@ exports.getConsultationStats = catchAsync(async (req, res) => {
 exports.getAllUsers = catchAsync(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search;
+  const minAge = parseInt(req.query.minAge);
+  const maxAge = parseInt(req.query.maxAge);
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
   const skip = (page - 1) * limit;
 
+  let query = {};
+  
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } },
+      { contact: { $regex: search, $options: 'i' } }
+    ];
+  }
+
+  if (!isNaN(minAge) || !isNaN(maxAge)) {
+    query.age = {};
+    if (!isNaN(minAge)) query.age.$gte = minAge;
+    if (!isNaN(maxAge)) query.age.$lte = maxAge;
+  }
+
+  if (startDate || endDate) {
+    query.createdAt = {};
+    if (startDate) query.createdAt.$gte = new Date(startDate);
+    if (endDate) query.createdAt.$lte = new Date(endDate);
+  }
+
   const [users, tempUsers, totalUsers, totalTempUsers] = await Promise.all([
-    User.find().select("-password").sort("-createdAt").skip(skip).limit(limit),
-    TempUser.find()
-      .select("-password")
-      .sort("-createdAt")
-      .skip(skip)
-      .limit(limit),
-    User.countDocuments(),
-    TempUser.countDocuments(),
+    User.find(query).select("-password").sort("-createdAt").skip(skip).limit(limit),
+    TempUser.find(query).select("-password").sort("-createdAt").skip(skip).limit(limit),
+    User.countDocuments(query),
+    TempUser.countDocuments(query),
   ]);
 
   res.json({

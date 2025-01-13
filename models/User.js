@@ -33,10 +33,6 @@ const userSchema = new mongoose.Schema({
         type: [mongoose.Schema.Types.ObjectId],
         ref: "Consultation"
     },
-    NoOfConsultations: {
-        type: Number,
-        default: 0
-    },
     otp: {
         type: Number
     },
