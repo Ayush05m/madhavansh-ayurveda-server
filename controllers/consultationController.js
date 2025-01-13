@@ -44,7 +44,7 @@ exports.createConsultation = catchAsync(async (req, res) => {
 
   const consultation = await Consultation.create({
     ...req.body,
-    amount: consultationFees[req.body.consultationType] || 1000,
+    amount: consultationFees[req.body.consultationType] || 100,
   });
 
   let updatedUser;

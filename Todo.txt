@@ -1,1 +1,3 @@
 Modify pagination and caching properly, caching is although fine but pagination might not working properly. Also implement the search feature properly via server-database interaction, since the search from front-end would require to fetch all the data at once and then search which is not efficient.
+
+Implement feedback link generation and display in dashboard consultation page and sending that to the users email with a button

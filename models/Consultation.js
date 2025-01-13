@@ -12,6 +12,10 @@ const consultationSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    email: {
+        type: String,
+        required: true,
+    },
     consultationType: {
         type: String,
         enum: ['General Consultation', 'Follow-up', 'Specific Treatment', 'Emergency'],
