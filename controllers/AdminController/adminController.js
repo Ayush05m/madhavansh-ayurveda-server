@@ -1,9 +1,9 @@
-const User = require("../models/User");
-const Doctor = require("../models/doctors");
-const Consultation = require("../models/Consultation");
-const catchAsync = require("../utils/catchAsync");
-const TempUser = require("../models/TempUser");
-const doctors = require("../models/doctors");
+const User = require("../../models/User");
+const Doctor = require("../../models/doctors");
+const Consultation = require("../../models/Consultation");
+const catchAsync = require("../../utils/catchAsync");
+const TempUser = require("../../models/TempUser");
+const doctors = require("../../models/doctors");
 
 // Dashboard Stats
 exports.getDashboardStats = catchAsync(async (req, res) => {
@@ -140,12 +140,12 @@ exports.getAllUsers = catchAsync(async (req, res) => {
   const skip = (page - 1) * limit;
 
   let query = {};
-  
+
   if (search) {
     query.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-      { contact: { $regex: search, $options: 'i' } }
+      { name: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+      { contact: { $regex: search, $options: "i" } },
     ];
   }
 
@@ -162,8 +162,16 @@ exports.getAllUsers = catchAsync(async (req, res) => {
   }
 
   const [users, tempUsers, totalUsers, totalTempUsers] = await Promise.all([
-    User.find(query).select("-password").sort("-createdAt").skip(skip).limit(limit),
-    TempUser.find(query).select("-password").sort("-createdAt").skip(skip).limit(limit),
+    User.find(query)
+      .select("-password")
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(limit),
+    TempUser.find(query)
+      .select("-password")
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(limit),
     User.countDocuments(query),
     TempUser.countDocuments(query),
   ]);
@@ -274,6 +282,39 @@ exports.deleteConsultationByID = catchAsync(async (req, res) => {
 });
 
 // Doctors
+
+exports.createDoctor = catchAsync(async (req, res) => {
+  try {
+    console.log(req.body);
+
+    const doctorData = {
+      ...req.body,
+      availability: {
+        days: req.body.availability.days,
+        slots: req.body.availability.slots.map((daySlots) =>
+          daySlots.map((slot) => ({
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            isBooked: false,
+          }))
+        ),
+      },
+    };
+
+    const doctor = await Doctor.create(doctorData);
+    res.status(201).json({
+      status: "success",
+      data: doctor,
+    });
+  } catch (error) {
+    console.error("Doctor creation error:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+});
+
 exports.deleteDoctorById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const doctor = Doctor.deleteOne({ _id: id });
@@ -282,5 +323,97 @@ exports.deleteDoctorById = catchAsync(async (req, res) => {
     success: true,
     count: doctors.length,
     data: doctors,
+  });
+});
+
+exports.getAllDoctors = catchAsync(async (req, res) => {
+  // const doctors = await Doctor.find()
+  console.log("query doc");
+  
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+  try {
+    const [doctors, count] = await Promise.all([
+      Doctor.find().sort("-createdAt").skip(skip).limit(limit),
+      Doctor.countDocuments(),
+    ]);
+    // .sort('name');
+    // console.log("doctors     ", doctors);
+
+    return res.status(200).json({
+      success: true,
+      currentPage: page,
+      totalPages: Math.ceil(count / limit),
+      count: count,
+      data: doctors,
+    });
+  } catch (error) {
+    console.error("Error fetching doctors:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+});
+
+exports.updateDoctor = catchAsync(async (req, res) => {
+  const doctor = await Doctor.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  }).select("-password");
+
+  if (!doctor) {
+    return res.status(404).json({
+      success: false,
+      message: "Doctor not found",
+    });
+  }
+
+  res.json({
+    success: true,
+    data: doctor,
+  });
+});
+
+exports.updateDoctorStatus = catchAsync(async (req, res) => {
+  const { status } = req.body;
+  const doctor = await Doctor.findByIdAndUpdate(
+    req.params.id,
+    { status },
+    { new: true }
+  ).select("-password");
+
+  if (!doctor) {
+    return res.status(404).json({
+      success: false,
+      message: "Doctor not found",
+    });
+  }
+
+  res.json({
+    success: true,
+    data: doctor,
+  });
+});
+
+exports.updateAvailability = catchAsync(async (req, res) => {
+  const { availability } = req.body;
+  const doctor = await Doctor.findByIdAndUpdate(
+    req.params.id,
+    { availability },
+    { new: true }
+  ).select("-password");
+
+  if (!doctor) {
+    return res.status(404).json({
+      success: false,
+      message: "Doctor not found",
+    });
+  }
+
+  res.json({
+    success: true,
+    data: doctor,
   });
 });
