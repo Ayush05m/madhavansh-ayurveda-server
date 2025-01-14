@@ -57,7 +57,7 @@ app.use(
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const consultationRoutes = require("./routes/consultationRoutes");
-const adminRoutes = require("./routes/adminRoutes");
+const adminRoutes = require("./routes/AdminRoutes/adminRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const QrGerator = require("./routes/qrGenerateRoutes")
 

@@ -1,31 +1,26 @@
 const express = require("express");
 const router = express.Router();
-const { protect, restrictTo } = require("../middleware/auth");
+const { protect, restrictTo } = require("../../middleware/auth");
 const {
   getDashboardStats,
   getAllUsers,
-  getAllDoctors,
   updateUserRole,
   getAllConsultations,
   getConsultationStats,
   deleteConsultationByID,
-  deleteDoctorById
-} = require("../controllers/adminController");
-
+} = require("../../controllers/AdminController/adminController");
 const {
   updateConsultation,
   updateConsultationStatus,
-} = require("../controllers/consultationController");
+} = require("../../controllers/consultationController");
 
-const { updateDoctorStatus } = require("../controllers/doctorController");
-
+const { chechMyAuth } = require("../../controllers/authController");
 const adminAuthRoutes = require("./adminAuthRoutes");
+const doctorRoutes = require("./docRoutes");
 
 // Admin auth routes
 router.use("/auth", adminAuthRoutes);
-
-// Protect all admin routes below this middleware
-// router.use(restrictTo("admin"));
+router.use("/", chechMyAuth);
 
 // Dashboard stats
 router.get("/dashboard-stats", getDashboardStats);
@@ -38,10 +33,8 @@ router.get("/consultations", getAllConsultations);
 router.get("/consultation-stats", getConsultationStats);
 router.put("/consultations/:id", updateConsultation);
 router.patch("/consultations/:id/status", updateConsultationStatus);
-router.delete("/consultations/:contact/:id", deleteConsultationByID)
+router.delete("/consultations/:contact/:id", deleteConsultationByID);
 
 // Doctors management
-router.patch("/doctors/:id/status", updateDoctorStatus);
-router.delete("/doctors/:id", deleteDoctorById)
-
+router.use("/doctors", doctorRoutes);
 module.exports = router;

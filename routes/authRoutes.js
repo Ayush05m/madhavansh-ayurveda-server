@@ -10,7 +10,5 @@ router.post('/login', authValidation.login, validate, login);
 router.post('/logout', protect, logout);
 router.post('/sendOtp', sendOtp);
 router.post('/verifyOtp', validateOtp);
-router.get('/me', protect, getMe);
-router.get('/check', protect, getMe);
 
 module.exports = router; 
