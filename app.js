@@ -22,7 +22,8 @@ const server = http.createServer(app); // Create an HTTP server
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://madhavash-ayurveda-client.vercel.app"
+  // "https://madhavash-ayurveda-client.vercel.app"
+  // "https://madhavansh-admin-dashboard.vercel.app,https://madhavash-ayurveda-client.vercel.app"
 ];
 
 // Add production URL if available
@@ -33,10 +34,10 @@ if (process.env.CLIENT_URL) {
 
 app.use(
   cors({
-    origin: function(origin, callback) {
+    origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      
+
       if (allowedOrigins.indexOf(origin) === -1) {
         var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
         return callback(new Error(msg), false);
