@@ -35,6 +35,8 @@ app.use(
   })
 );
 
+app.set('trust proxy', 1); 
+
 // Security middleware
 app.use(helmet());
 app.use(mongoSanitize());
@@ -44,6 +46,7 @@ app.use(compression());
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  keyGenerator: (req) => req.ip,
 });
 app.use("/api/", limiter);
 
