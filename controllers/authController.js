@@ -241,6 +241,7 @@ exports.registerAdmin = catchAsync(async (req, res, next) => {
 exports.chechMyAuth = catchAsync(async (req, res, next) => {
   try {
     const token = req.headers.authorization;
+    // const token = "hgdfoigshndf";
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -248,12 +249,8 @@ exports.chechMyAuth = catchAsync(async (req, res, next) => {
       });
     }
     console.log("Auth Checking");
-    console.log(token);
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // console.log(decoded);
-
-    req.user = decoded;
+    // console.log(token);
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch (error) {
     console.error("Authentication error:", error);
