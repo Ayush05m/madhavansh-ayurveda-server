@@ -24,10 +24,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://madhavash-ayurveda-client.vercel.app",
+  process.env.CLIENT_URL
+];
+
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174", process.env.CLIENT_URL],
-    credentials: true,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    }, credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
     exposedHeaders: ["Set-Cookie"],
@@ -35,7 +47,7 @@ app.use(
   })
 );
 
-app.set('trust proxy', 1); 
+app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet());
@@ -76,8 +88,8 @@ app.use("/api/feedback", feedbackRoutes);
 app.use(errorHandler);
 
 app.use((req, res, next) => {
-    console.log(`Request Method: ${req.method}, Request URL: ${req.url}`);
-    next();
+  console.log(`Request Method: ${req.method}, Request URL: ${req.url}`);
+  next();
 });
 
 // Default Admin creation
