@@ -27,7 +27,7 @@ app.use(cookieParser());
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://madhavash-ayurveda-client.vercel.app",
+  // "https://madhavash-ayurveda-client.vercel.app",
   process.env.CLIENT_URL
 ];
 
