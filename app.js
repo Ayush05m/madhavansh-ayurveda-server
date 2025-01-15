@@ -46,7 +46,7 @@ app.use(
     optionsSuccessStatus: 200,
   })
 );
-
+app.options("*", cors()); // Responds to preflight requests globally
 app.set('trust proxy', 1);
 
 // Security middleware
