@@ -18,11 +18,6 @@ const feedbackRoutes = require("./routes/feedbackRoutes");
 const app = express();
 const server = http.createServer(app); // Create an HTTP server
 
-// Body parsing middleware
-app.use(express.json({ limit: "10kb" }));
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
 // CORS configuration
 const allowedOrigins = [
   "http://localhost:5173",
@@ -31,23 +26,43 @@ const allowedOrigins = [
   process.env.CLIENT_URL
 ];
 
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     }, credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+//     exposedHeaders: ["Set-Cookie"],
+//     optionsSuccessStatus: 200,
+//   })
+// );
+
+// Temporary Cors
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    }, credentials: true,
+    origin: "*", // Allow all origins temporarily
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-    exposedHeaders: ["Set-Cookie"],
     optionsSuccessStatus: 200,
+    exposedHeaders: ["Set-Cookie"],
   })
 );
+
 app.options("*", cors()); // Responds to preflight requests globally
 app.set('trust proxy', 1);
+
+
+// Body parsing middleware
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
 
 // Security middleware
 app.use(helmet());
